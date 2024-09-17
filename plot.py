@@ -102,7 +102,9 @@ def plot_gCD_from_file_list(read_path, start_x=350, end_x=498):
     
     fname_list_ptr = open(read_path,'r')
     CD_df_list = list()
-    g_CD_list = dict()
+    gCD_list = dict()
+    global_gCD_df = pd.DataFrame()
+    global_gCD_df.insert(0,'Wavelength (nm)',range(300,551),False)
 
     i = 0
     skip_flag = False
@@ -140,22 +142,26 @@ def plot_gCD_from_file_list(read_path, start_x=350, end_x=498):
             uv_column = df_abs.columns.values[int(film_num)]
         elif int(film_num) in [4,5]:
             uv_column = df_abs.columns.values[int(film_num)-1]
-        df = pd .read_csv(join(cd_data_dir_path,fname), delimiter='  ', engine='python', usecols=['X','CD_Signal']).iloc[::-1].reset_index(drop=True)
+        df = pd.read_csv(join(cd_data_dir_path,fname), delimiter='  ', engine='python', usecols=['X','CD_Signal']).iloc[::-1].reset_index(drop=True)
         CD_df_list.append(df)
         if i%4==3:
             if len(CD_df_list)!=4:
                 print('Unexpected number of files to calculate g_CD...')
                 return
             cd_avg = (CD_df_list[0]['CD_Signal']+CD_df_list[1]['CD_Signal']+CD_df_list[2]['CD_Signal']+CD_df_list[3]['CD_Signal'])/4
-            g_CD = ((cd_avg-df_baseline['CD_Signal'])/df_abs[uv_column])/3300
-            plt.plot(CD_df_list[0]['X'][:-cutoff],g_CD[:-cutoff], label=film_label)
+            gCD = ((cd_avg-df_baseline['CD_Signal'])/df_abs[uv_column])/3300
 
-            g_CD_list[film_label] = g_CD[:-cutoff].max()
+            plt.plot(CD_df_list[0]['X'][:-cutoff],gCD[:-cutoff], label=film_label)
+            global_gCD_df.insert(len(global_gCD_df.columns),film_label,gCD[:-cutoff],True)
+
+            gCD_list[film_label] = gCD[:-cutoff].max()
             CD_df_list = list()
 
         i = i+1
 
-    print(g_CD_list)
+    print(global_gCD_df.head())
+    global_gCD_df.to_csv(gCD_output_path,index=False)
+    print(gCD_list)
 
     x_ticks = np.arange(start_x,end_x+1,xticks_interval)
 
