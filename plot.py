@@ -159,7 +159,6 @@ def plot_gCD_from_file_list(read_path, start_x=350, end_x=498):
 
         i = i+1
 
-    print(global_gCD_df.head())
     global_gCD_df.to_csv(gCD_output_path,index=False)
     print(gCD_list)
 
